@@ -79,6 +79,72 @@ const HAND_TYPES = {
     INVALID: 'INVALID'
 };
 
+const STORAGE_KEY = 'doudizhu_leaderboard';
+
+class Leaderboard {
+    static load() {
+        try {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    static save(records) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    static addRecord(score, role, isWin) {
+        const records = this.load();
+        records.push({
+            score,
+            role,
+            isWin,
+            timestamp: Date.now()
+        });
+        this.save(records);
+    }
+
+    static getRanked() {
+        const records = this.load();
+        return records
+            .sort((a, b) => b.score - a.score)
+            .map((r, i) => ({ ...r, rank: i + 1 }));
+    }
+
+    static clear() {
+        localStorage.removeItem(STORAGE_KEY);
+    }
+
+    static renderList() {
+        const listEl = document.getElementById('leaderboard-list');
+        const records = this.getRanked();
+
+        if (records.length === 0) {
+            listEl.innerHTML = '<div class="leaderboard-empty">暂无战绩记录</div>';
+            return;
+        }
+
+        listEl.innerHTML = records.map(r => {
+            const rankClass = r.rank <= 3 ? ` top${r.rank}` : '';
+            const scoreClass = r.score >= 0 ? 'positive' : 'negative';
+            const scoreText = r.score >= 0 ? `+${r.score}` : `${r.score}`;
+            const roleText = r.role === 'landlord' ? '地主' : '农民';
+            const resultText = r.isWin ? '胜' : '负';
+            const date = new Date(r.timestamp);
+            const timeStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            return `<div class="leaderboard-item">
+                <div class="leaderboard-rank${rankClass}">${r.rank}</div>
+                <div class="leaderboard-info">
+                    <div class="leaderboard-score ${scoreClass}">${scoreText}</div>
+                    <div class="leaderboard-meta">${roleText} · ${resultText} · ${timeStr}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+}
+
 class Card {
     constructor(suit, rank, value) {
         this.suit = suit;
@@ -251,6 +317,17 @@ class Game {
         document.getElementById('instant-win').onclick = () => { this.endGame('user'); document.getElementById('dev-menu').classList.add('hidden'); };
         document.getElementById('reset-score').onclick = () => { this.resetTotalScore(); document.getElementById('dev-menu').classList.add('hidden'); };
         document.getElementById('restart-btn').onclick = () => { document.getElementById('result-modal').classList.add('hidden'); this.startNewGame(); };
+
+        document.getElementById('leaderboard-btn').onclick = () => { Leaderboard.renderList(); document.getElementById('leaderboard-modal').classList.remove('hidden'); };
+        document.getElementById('leaderboard-close').onclick = () => { document.getElementById('leaderboard-modal').classList.add('hidden'); };
+        document.getElementById('leaderboard-clear').onclick = async () => {
+            const confirmed = await showConfirm('确定要清空所有战绩记录吗？此操作不可恢复！', '⚠️ 清空战绩');
+            if (confirmed) {
+                Leaderboard.clear();
+                Leaderboard.renderList();
+                showAlert('战绩记录已清空！', '✅ 成功');
+            }
+        };
     }
 
     startNewGame() {
@@ -498,6 +575,8 @@ class Game {
         this.totalScore += scoreChange;
         this.saveTotalScore();
         this.updateScoreDisplay();
+
+        Leaderboard.addRecord(scoreChange, this.landlord === 'user' ? 'landlord' : 'peasant', isUserWin);
 
         // 显示结算信息
         const msg = isLandlordWin
