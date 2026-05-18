@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>极简斗地主</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="game-container">
+        <!-- 背景与装饰 -->
+        <div class="background-decor"></div>
+
+        <!-- 顶部信息栏 -->
+        <header class="game-header">
+            <div class="score-board">
+                <span class="score-item">总积分: <span id="total-score">0</span></span>
+                <span class="score-item">底分: <span id="base-score">10</span></span>
+                <span class="score-item">倍数: <span id="multiplier">1</span></span>
+            </div>
+            <button id="cheat-btn" class="icon-btn" title="开发者选项">🛠️</button>
+        </header>
+
+        <!-- 游戏区域 -->
+        <main class="game-table">
+            <!-- 电脑玩家 左 -->
+            <div class="player-area player-left" id="player-left">
+                <div class="left-info-wrapper">
+                    <div class="avatar">🤖 左</div>
+                    <div class="role-icon hidden"></div>
+                    <div class="status-bubble hidden"></div>
+                </div>
+                <!-- 移动端/折叠显示 -->
+                <div class="hand-cards-back-container mobile-only">
+                    <div class="card-back-count">17</div>
+                </div>
+                <!-- PC端/展开显示 -->
+                <div class="bot-hand-container pc-only"></div>
+
+                <div class="played-cards-area"></div>
+                <!-- 透视信息 -->
+                <div id="cheat-left" class="cheat-info hidden"></div>
+            </div>
+
+            <!-- 电脑玩家 顶 -->
+            <div class="player-area player-top" id="player-top">
+                <div class="top-info-wrapper">
+                    <div class="avatar">🤖 顶</div>
+                    <div class="role-icon hidden"></div>
+                    <div class="status-bubble hidden"></div>
+                </div>
+                <!-- 移动端/折叠显示 -->
+                <div class="hand-cards-back-container mobile-only">
+                    <div class="card-back-count">17</div>
+                </div>
+                <!-- PC端/展开显示 -->
+                <div class="bot-hand-container pc-only"></div>
+
+                <div class="played-cards-area"></div>
+                <!-- 透视信息 -->
+                <div id="cheat-top" class="cheat-info hidden"></div>
+            </div>
+
+            <!-- 玩家区域 (底部) -->
+            <div class="player-area player-user" id="player-user">
+                <div class="played-cards-area"></div>
+
+                <div class="control-panel hidden" id="control-panel">
+                    <button class="btn secondary" data-action="pass">不出</button>
+                    <button class="btn secondary" data-action="reset">重选</button>
+                    <button class="btn primary" data-action="play">出牌</button>
+                </div>
+
+                <div class="bid-panel hidden" id="bid-panel">
+                    <button class="btn secondary" data-action="no-call">不叫</button>
+                    <button class="btn primary" data-action="call">叫地主</button>
+                </div>
+
+                <div class="hand-cards-container" id="user-hand">
+                    <!-- 动态生成手牌 -->
+                </div>
+                <div class="role-icon hidden" id="user-role-icon"></div>
+            </div>
+
+            <!-- 底牌显示区 -->
+            <div class="hole-cards-area">
+                <div class="label">底牌</div>
+                <div class="cards" id="hole-cards">
+                    <div class="card-back"></div>
+                    <div class="card-back"></div>
+                    <div class="card-back"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 透视作弊层已移入各玩家区域 -->
+
+    </div>
+
+    <!-- 结算弹窗 -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="result-title">胜利!</h2>
+            <p id="result-score">得分: +100</p>
+            <button class="btn primary large" id="restart-btn">再来一局</button>
+        </div>
+    </div>
+
+    <!-- 开发者菜单 -->
+    <div id="dev-menu" class="modal hidden">
+        <div class="modal-content dev-panel">
+            <h3>🛠️ 开发者选项</h3>
+            <div class="option-row">
+                <label>透视模式</label>
+                <input type="checkbox" id="toggle-xray">
+            </div>
+            <div class="dev-panel-actions">
+                <button class="btn danger" id="instant-win">直接胜利</button>
+                <button class="btn secondary" id="reset-score">清空积分</button>
+                <button class="btn secondary" id="close-dev">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义提示弹窗 (Alert) -->
+    <div id="custom-alert" class="modal hidden">
+        <div class="modal-content alert-panel">
+            <h3 id="alert-title">💡 提示</h3>
+            <p id="alert-message">消息内容</p>
+            <div class="alert-actions">
+                <button class="btn primary" id="alert-close-btn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义确认弹窗 (Confirm) -->
+    <div id="custom-confirm" class="modal hidden">
+        <div class="modal-content confirm-panel">
+            <h3 id="confirm-title">⚠️ 确认</h3>
+            <p id="confirm-message">确认内容</p>
+            <div class="confirm-actions">
+                <button class="btn secondary" id="confirm-cancel-btn">取消</button>
+                <button class="btn danger" id="confirm-ok-btn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
