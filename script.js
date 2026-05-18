@@ -251,6 +251,10 @@ class Game {
         document.getElementById('instant-win').onclick = () => { this.endGame('user'); document.getElementById('dev-menu').classList.add('hidden'); };
         document.getElementById('reset-score').onclick = () => { this.resetTotalScore(); document.getElementById('dev-menu').classList.add('hidden'); };
         document.getElementById('restart-btn').onclick = () => { document.getElementById('result-modal').classList.add('hidden'); this.startNewGame(); };
+
+        document.getElementById('leaderboard-btn').onclick = () => this.showLeaderboard();
+        document.getElementById('leaderboard-close-btn').onclick = () => document.getElementById('leaderboard-modal').classList.add('hidden');
+        document.getElementById('leaderboard-clear-btn').onclick = () => this.clearLeaderboard();
     }
 
     startNewGame() {
@@ -483,23 +487,26 @@ class Game {
         const isLandlordWin = winner === this.landlord;
         const isUserWin = winner === 'user';
 
-        // 计算积分变化
         let scoreChange = this.baseScore * this.multiplier;
         if (this.landlord === 'user') {
-            // 玩家是地主
             scoreChange = isUserWin ? scoreChange * 2 : -scoreChange * 2;
         } else {
-            // 玩家是农民
             scoreChange = isUserWin ? scoreChange : -scoreChange;
         }
 
-        // 更新总积分
         this.currentGameScore = scoreChange;
         this.totalScore += scoreChange;
         this.saveTotalScore();
         this.updateScoreDisplay();
 
-        // 显示结算信息
+        this.saveLeaderboardRecord({
+            win: isUserWin,
+            score: scoreChange,
+            totalScore: this.totalScore,
+            landlord: this.landlord === 'user',
+            multiplier: this.multiplier
+        });
+
         const msg = isLandlordWin
             ? (this.landlord === 'user' ? '地主(你) 胜利!' : '地主 胜利! (你输了)')
             : (this.landlord === 'user' ? '农民 胜利! (你输了)' : '农民(你) 胜利!');
@@ -673,6 +680,135 @@ class Game {
             this.saveTotalScore();
             this.updateScoreDisplay();
             showAlert('总积分已清空！', '✅ 成功');
+        }
+    }
+
+    // 排行榜系统
+    static LB_STORAGE_KEY = 'doudizhu_leaderboard';
+
+    loadLeaderboard() {
+        try {
+            const saved = localStorage.getItem(Game.LB_STORAGE_KEY);
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    saveLeaderboard(records) {
+        localStorage.setItem(Game.LB_STORAGE_KEY, JSON.stringify(records));
+    }
+
+    saveLeaderboardRecord(record) {
+        const records = this.loadLeaderboard();
+        records.push({
+            ...record,
+            timestamp: Date.now(),
+            date: this.formatDate(new Date())
+        });
+        this.saveLeaderboard(records);
+    }
+
+    formatDate(date) {
+        const pad = (n) => n < 10 ? '0' + n : n;
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    getRankedRecords() {
+        return this.loadLeaderboard().slice().sort((a, b) => b.score - a.score);
+    }
+
+    getLeaderboardStats() {
+        const records = this.loadLeaderboard();
+        if (records.length === 0) {
+            return { total: 0, wins: 0, winrate: '0%', best: 0 };
+        }
+        const wins = records.filter(r => r.win).length;
+        const best = records.reduce((max, r) => r.score > max ? r.score : max, records[0].score);
+        return {
+            total: records.length,
+            wins: wins,
+            winrate: Math.round((wins / records.length) * 100) + '%',
+            best: best
+        };
+    }
+
+    showLeaderboard() {
+        const modal = document.getElementById('leaderboard-modal');
+        this.renderLeaderboard();
+        modal.classList.remove('hidden');
+    }
+
+    renderLeaderboard() {
+        const listEl = document.getElementById('leaderboard-list');
+        const stats = this.getLeaderboardStats();
+
+        document.getElementById('lb-total').innerText = stats.total;
+        document.getElementById('lb-wins').innerText = stats.wins;
+        document.getElementById('lb-winrate').innerText = stats.winrate;
+        document.getElementById('lb-best').innerText = stats.best;
+
+        const records = this.getRankedRecords();
+        listEl.innerHTML = '';
+
+        if (records.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'lb-empty';
+            empty.innerText = '暂无战绩记录，快来开启第一局吧！';
+            listEl.appendChild(empty);
+            return;
+        }
+
+        records.forEach((record, index) => {
+            const row = document.createElement('div');
+            row.className = 'lb-row';
+
+            const rank = index + 1;
+            let rankClass = '';
+            let rankText = rank.toString();
+            if (rank === 1) { rankClass = 'rank-1'; rankText = '🥇'; }
+            else if (rank === 2) { rankClass = 'rank-2'; rankText = '🥈'; }
+            else if (rank === 3) { rankClass = 'rank-3'; rankText = '🥉'; }
+            else rankClass = 'rank-empty';
+
+            const rankEl = document.createElement('div');
+            rankEl.className = `lb-rank ${rankClass}`;
+            rankEl.innerText = rankText;
+
+            const infoEl = document.createElement('div');
+            infoEl.className = 'lb-info';
+
+            const resultEl = document.createElement('div');
+            resultEl.className = `lb-result ${record.win ? 'win' : 'lose'}`;
+            resultEl.innerText = `${record.win ? '🏆 胜利' : '💔 失败'} · ${record.landlord ? '地主' : '农民'} · ${record.multiplier}倍`;
+
+            const metaEl = document.createElement('div');
+            metaEl.className = 'lb-meta';
+            metaEl.innerText = record.date;
+
+            infoEl.appendChild(resultEl);
+            infoEl.appendChild(metaEl);
+
+            const scoreEl = document.createElement('div');
+            scoreEl.className = `lb-score ${record.score >= 0 ? 'positive' : 'negative'}`;
+            scoreEl.innerText = (record.score >= 0 ? '+' : '') + record.score;
+
+            row.appendChild(rankEl);
+            row.appendChild(infoEl);
+            row.appendChild(scoreEl);
+            listEl.appendChild(row);
+        });
+    }
+
+    async clearLeaderboard() {
+        const confirmed = await showConfirm(
+            '确定要清空所有战绩记录吗？此操作不可恢复！',
+            '⚠️ 清空排行榜'
+        );
+        if (confirmed) {
+            this.saveLeaderboard([]);
+            this.renderLeaderboard();
+            showAlert('战绩记录已清空！', '✅ 成功');
         }
     }
 }

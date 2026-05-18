@@ -22,6 +22,7 @@
                 <span class="score-item">倍数: <span id="multiplier">1</span></span>
             </div>
             <button id="cheat-btn" class="icon-btn" title="开发者选项">🛠️</button>
+            <button id="leaderboard-btn" class="icon-btn" title="战绩排行榜">🏆</button>
         </header>
 
         <!-- 游戏区域 -->
@@ -144,6 +145,38 @@
             <div class="confirm-actions">
                 <button class="btn secondary" id="confirm-cancel-btn">取消</button>
                 <button class="btn danger" id="confirm-ok-btn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 排行榜弹窗 -->
+    <div id="leaderboard-modal" class="modal hidden">
+        <div class="modal-content leaderboard-panel">
+            <h3>🏆 战绩排行榜</h3>
+            <div class="leaderboard-summary">
+                <div class="summary-item">
+                    <span class="summary-label">总局数</span>
+                    <span id="lb-total" class="summary-value">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">胜场</span>
+                    <span id="lb-wins" class="summary-value">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">胜率</span>
+                    <span id="lb-winrate" class="summary-value">0%</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">最佳</span>
+                    <span id="lb-best" class="summary-value">0</span>
+                </div>
+            </div>
+            <div class="leaderboard-list-wrapper">
+                <div id="leaderboard-list" class="leaderboard-list"></div>
+            </div>
+            <div class="leaderboard-actions">
+                <button class="btn danger" id="leaderboard-clear-btn">一键清空</button>
+                <button class="btn primary" id="leaderboard-close-btn">关闭</button>
             </div>
         </div>
     </div>
