@@ -21,7 +21,10 @@
                 <span class="score-item">底分: <span id="base-score">10</span></span>
                 <span class="score-item">倍数: <span id="multiplier">1</span></span>
             </div>
-            <button id="cheat-btn" class="icon-btn" title="开发者选项">🛠️</button>
+            <div class="header-actions">
+                <button id="leaderboard-btn" class="icon-btn" title="战绩排行榜">🏆</button>
+                <button id="cheat-btn" class="icon-btn" title="开发者选项">🛠️</button>
+            </div>
         </header>
 
         <!-- 游戏区域 -->
@@ -144,6 +147,38 @@
             <div class="confirm-actions">
                 <button class="btn secondary" id="confirm-cancel-btn">取消</button>
                 <button class="btn danger" id="confirm-ok-btn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 战绩排行榜弹窗 -->
+    <div id="leaderboard-modal" class="modal hidden">
+        <div class="modal-content leaderboard-panel">
+            <h3>🏆 战绩排行榜</h3>
+            <div class="leaderboard-stats">
+                <div class="stat-item">
+                    <span class="stat-label">总局数</span>
+                    <span class="stat-value" id="stat-total-games">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">胜利</span>
+                    <span class="stat-value win" id="stat-wins">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">失败</span>
+                    <span class="stat-value lose" id="stat-losses">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">胜率</span>
+                    <span class="stat-value" id="stat-win-rate">0%</span>
+                </div>
+            </div>
+            <div class="leaderboard-list" id="leaderboard-list">
+                <div class="empty-state">暂无战绩记录</div>
+            </div>
+            <div class="leaderboard-actions">
+                <button class="btn danger" id="clear-leaderboard-btn">清空记录</button>
+                <button class="btn primary" id="close-leaderboard-btn">关闭</button>
             </div>
         </div>
     </div>
